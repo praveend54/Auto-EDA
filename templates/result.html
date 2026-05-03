@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto EDA Results</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .section {
+            background: white;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card {
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1 1 300px;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📊 Auto EDA Dashboard</h1>
+
+<!-- Overview -->
+<div class="section">
+    <h2>📌 Overview</h2>
+    <p>{{ results.overview }}</p>
+</div>
+
+<!-- Insights -->
+<div class="section">
+    <h2>⚠️ Insights</h2>
+    <ul>
+        {% for item in results.insights %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Missing Insights -->
+<div class="section">
+    <h2>🧩 Missing Data Analysis</h2>
+    <ul>
+        {% for item in results.missing_insights %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Stats -->
+<div class="section">
+    <h2>📊 Summary Stats</h2>
+    <pre>{{ results.summary }}</pre>
+</div>
+
+<!-- Visualizations -->
+<div class="section">
+    <h2>📈 Visualizations</h2>
+
+    <div class="grid">
+        {% for path in results.histograms %}
+            <div class="card">
+                <img src="/{{ path }}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <h3>Correlation Heatmap</h3>
+    <img src="/{{ results.heatmap }}">
+</div>
+
+</body>
+</html>
