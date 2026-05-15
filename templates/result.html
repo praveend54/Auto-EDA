@@ -1,100 +1,486 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Auto EDA Results</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-EDA | Analysis Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial;
-            background: #f5f7fa;
+        :root {
+            --bg-color: #0f172a; /* Slate 900 */
+            --glass-bg: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #6366f1; /* Indigo 500 */
+            --accent: #a855f7; /* Purple 500 */
+            --success: #10b981; /* Emerald 500 */
+            --warning: #f59e0b; /* Amber 500 */
+            --danger: #ef4444; /* Red 500 */
+            --text-main: #f8fafc; /* Slate 50 */
+            --text-muted: #94a3b8; /* Slate 400 */
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
         }
 
-        h1 {
-            text-align: center;
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            background-attachment: fixed;
         }
 
-        .section {
-            background: white;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        .grid {
+        .top-bar {
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .card {
-            background: #fafafa;
-            padding: 10px;
+        .title-area h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
             border-radius: 8px;
-            flex: 1 1 300px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        img {
-            max-width: 100%;
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-2px);
+        }
+
+        .btn-back svg {
+            margin-right: 0.5rem;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title svg {
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+
+        /* Top Grid */
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .top-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Quality Score */
+        .score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        /* Inner circle for donut chart effect */
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            background: #1e293b; /* match inner background approx */
+            border-radius: 50%;
+        }
+
+        .score-value {
+            position: relative;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            z-index: 1;
+        }
+
+        .score-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Overview Cards */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            height: 100%;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Issues List */
+        .issues-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .issues-list li {
+            padding: 0.75rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--danger);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #fca5a5;
+        }
+
+        /* Warnings Section */
+        .warnings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            color: #fcd34d;
         }
 
-        pre {
-            white-space: pre-wrap;
+        .alert-warning svg {
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Summary Stats */
+        .summary-block {
+            background: #0f172a;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+        }
+
+        .summary-block pre {
+            font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        /* Visualizations */
+        .viz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .viz-card {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .viz-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+            transform: scale(1.02);
+        }
+
+        .viz-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .heatmap-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .heatmap-container img {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Empty states */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-<h1>📊 Auto EDA Dashboard</h1>
-
-<!-- Overview -->
-<div class="section">
-    <h2>📌 Overview</h2>
-    <p>{{ results.overview }}</p>
-</div>
-
-<!-- Insights -->
-<div class="section">
-    <h2>⚠️ Insights</h2>
-    <ul>
-        {% for item in results.insights %}
-            <li>{{ item }}</li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- Missing Insights -->
-<div class="section">
-    <h2>🧩 Missing Data Analysis</h2>
-    <ul>
-        {% for item in results.missing_insights %}
-            <li>{{ item }}</li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- Stats -->
-<div class="section">
-    <h2>📊 Summary Stats</h2>
-    <pre>{{ results.summary }}</pre>
-</div>
-
-<!-- Visualizations -->
-<div class="section">
-    <h2>📈 Visualizations</h2>
-
-    <div class="grid">
-        {% for path in results.histograms %}
-            <div class="card">
-                <img src="/{{ path }}">
-            </div>
-        {% endfor %}
+<div class="dashboard-container">
+    
+    <div class="top-bar">
+        <div class="title-area">
+            <h1>Auto-EDA Dashboard</h1>
+        </div>
+        <a href="/" class="btn-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Upload
+        </a>
     </div>
 
-    <h3>Correlation Heatmap</h3>
-    <img src="/{{ results.heatmap }}">
+    <div class="top-grid">
+        <!-- Quality Score -->
+        <div class="glass-panel">
+            <h2 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Data Quality Score
+            </h2>
+            
+            <div class="score-container">
+                <div class="score-circle" style="background: conic-gradient(var(--success) {{ results.quality_score }}%, rgba(255,255,255,0.1) 0);">
+                    <div class="score-value">{{ results.quality_score }}</div>
+                </div>
+                <div class="score-label">out of 100</div>
+            </div>
+
+            {% if results.quality_issues %}
+                <ul class="issues-list">
+                    {% for item in results.quality_issues %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- Overview Cards -->
+        <div class="glass-panel">
+            <h2 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                Dataset Overview
+            </h2>
+            
+            <div class="overview-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ results.overview.rows }}</div>
+                    <div class="stat-label">Total Rows</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ results.overview.columns }}</div>
+                    <div class="stat-label">Total Columns</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ results.overview.numeric_cols }}</div>
+                    <div class="stat-label">Numeric</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ results.overview.categorical_cols }}</div>
+                    <div class="stat-label">Categorical</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Warnings -->
+    <div class="glass-panel">
+        <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Key Warnings
+        </h2>
+        
+        <div class="warnings-container">
+            {% if results.warnings %}
+                {% for item in results.warnings %}
+                    <div class="alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ item }}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">No significant warnings found in the dataset.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="glass-panel">
+        <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Summary Statistics
+        </h2>
+        
+        <div class="summary-block">
+            <pre>{{ results.summary }}</pre>
+        </div>
+    </div>
+
+    <!-- Visualizations -->
+    <div class="glass-panel">
+        <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+            </svg>
+            Visualizations
+        </h2>
+        
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 1.1rem;">Distributions</h3>
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+            <strong>What is this?</strong> A distribution (histogram) shows how often different values appear in a single column of your data. 
+            <br><strong>How to read it:</strong> The taller the bar, the more frequently that range of values occurs. This helps you quickly spot averages, common patterns, or unusual outliers.
+        </p>
+        <div class="viz-grid">
+            {% if results.histograms %}
+                {% for item in results.histograms %}
+                    <div class="viz-card">
+                        {% if item is string %}
+                            <img src="/{{ item }}" alt="Histogram" loading="lazy">
+                        {% else %}
+                            <img src="/{{ item.path }}" alt="Histogram for {{ item.column }}" loading="lazy">
+                            <div style="padding: 1rem; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.2);">
+                                <h4 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-main);">{{ item.column }}</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4;">{{ item.explanation }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">No distributions generated.</div>
+            {% endif %}
+        </div>
+
+        <h3 style="margin-bottom: 0.5rem; margin-top: 2rem; color: var(--text-muted); font-size: 1.1rem;">Correlation Heatmap</h3>
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+            <strong>What is this?</strong> A correlation heatmap shows how strongly different numeric variables in your dataset are related to one another.
+            <br><strong>How to read it:</strong> Look at the color intensity. Stronger, darker colors indicate a stronger relationship. A positive relationship means as one variable increases, the other also increases. A negative relationship means as one increases, the other decreases. If the box is pale or light, the variables are likely unrelated.
+        </p>
+        {% if results.heatmap %}
+            <div class="heatmap-container">
+                <div class="viz-card">
+                    {% if results.heatmap is string %}
+                        <img src="/{{ results.heatmap }}" alt="Correlation Heatmap" loading="lazy">
+                    {% else %}
+                        <img src="/{{ results.heatmap.path }}" alt="Correlation Heatmap" loading="lazy">
+                        <div style="padding: 1rem; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.2);">
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0; line-height: 1.5;">{{ results.heatmap.explanation }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">No heatmap generated.</div>
+        {% endif %}
+    </div>
+
 </div>
 
 </body>
