@@ -4,6 +4,11 @@ from main import run_eda
 app = Flask(__name__)
 UPLOAD_FOLDER = 'data'
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Ensure required directories exist (Crucial for cloud deployments like Render)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs('static/outputs', exist_ok=True)
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method=="POST":
